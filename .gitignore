@@ -1,0 +1,15 @@
+# Python
+backend/.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+extension/dist/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/

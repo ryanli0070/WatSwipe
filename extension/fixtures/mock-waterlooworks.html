@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mock WaterlooWorks — Job Postings</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 13px; }
+      button { cursor: pointer; }
+      .note { color: #666; font-size: 12px; margin-bottom: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Mock WaterlooWorks</h1>
+    <p class="note">
+      Fixture for developing the scraper without a live authenticated session.
+      The <code>data-*</code> attributes and class names mirror what
+      <code>schema.js</code> / <code>scraper.js</code> expect. Real WaterlooWorks
+      selectors get swapped into <code>schema.js</code> later.
+    </p>
+
+    <table class="job-table">
+      <thead>
+        <tr>
+          <th>Title</th><th>Company</th><th>Location</th><th>Term</th>
+          <th>Status</th><th>Tags</th><th>Deadline</th><th>Shortlist</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-job-id="1001" data-shortlisted="false">
+          <td data-col="title">Machine Learning Engineer</td>
+          <td data-col="company">Acme AI</td>
+          <td data-col="location">Toronto, ON</td>
+          <td data-col="term">Fall 2026</td>
+          <td data-col="status">Open</td>
+          <td data-col="tags">python, ml, pytorch</td>
+          <td data-col="deadline">2026-07-15</td>
+          <td><button data-action="shortlist">☆</button></td>
+          <td data-col="description" hidden>
+            Build and deploy ML models in Python. Work with PyTorch, scikit-learn,
+            and large datasets to improve recommendation quality.
+          </td>
+        </tr>
+        <tr data-job-id="1002" data-shortlisted="false">
+          <td data-col="title">Frontend Developer</td>
+          <td data-col="company">Bright Web Co</td>
+          <td data-col="location">Remote</td>
+          <td data-col="term">Fall 2026</td>
+          <td data-col="status">Open</td>
+          <td data-col="tags">react, typescript, css</td>
+          <td data-col="deadline">2026-07-10</td>
+          <td><button data-action="shortlist">☆</button></td>
+          <td data-col="description" hidden>
+            Build responsive React + TypeScript interfaces and design systems for
+            a marketing platform.
+          </td>
+        </tr>
+        <tr data-job-id="1003" data-shortlisted="false">
+          <td data-col="title">Backend Engineer (Python)</td>
+          <td data-col="company">DataForge</td>
+          <td data-col="location">Waterloo, ON</td>
+          <td data-col="term">Fall 2026</td>
+          <td data-col="status">Open</td>
+          <td data-col="tags">python, fastapi, postgres</td>
+          <td data-col="deadline">2026-07-20</td>
+          <td><button data-action="shortlist">☆</button></td>
+          <td data-col="description" hidden>
+            Design stateless FastAPI services and data pipelines. Strong Python and
+            SQL skills required.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <script>
+      // Visual feedback so manual testing of CLICK_SHORTLIST is observable.
+      document.querySelector("table.job-table").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-action='shortlist']");
+        if (btn) btn.textContent = "★";
+      });
+    </script>
+  </body>
+</html>

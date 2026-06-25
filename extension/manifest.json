@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "WatSwipe Bridge",
+  "version": "0.1.0",
+  "description": "Decentralized scraping + curation bridge for WaterlooWorks. All data stays on your device.",
+  "permissions": ["storage", "alarms", "tabs"],
+  "host_permissions": [
+    "https://waterlooworks.uwaterloo.ca/*",
+    "http://localhost:5173/*"
+  ],
+  "background": {
+    "service_worker": "src/background/worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://waterlooworks.uwaterloo.ca/*"],
+      "js": [
+        "src/lib/messages.js",
+        "src/lib/schema.js",
+        "src/lib/storage.js",
+        "src/content/scraper.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://localhost:5173/*"],
+      "js": [
+        "src/lib/messages.js",
+        "src/lib/storage.js",
+        "src/content/bridge.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

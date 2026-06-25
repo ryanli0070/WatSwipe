@@ -1,0 +1,28 @@
+[project]
+name = "watswipe-backend"
+version = "0.1.0"
+description = "Stateless text-utility worker for WatSwipe. No database, no auth, no job storage."
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "scikit-learn>=1.4",
+    "numpy>=1.26",
+    "pydantic>=2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "app.routers", "app.services"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
