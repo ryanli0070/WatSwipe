@@ -75,6 +75,7 @@ async function drainQueue() {
       } catch (err) {
         result = { id, ok: false, reason: String(err) };
       }
+      console.info("[WatSwipe/worker] click result:", result);
 
       // Remove from the head whether it succeeded or hard-failed (avoid wedging);
       // failures are surfaced to the app for optional manual retry.
