@@ -26,16 +26,10 @@ const randomDelay = () =>
 
 let draining = false;
 
-// The live WaterlooWorks origin, plus the local fixture during development so the
-// Phase 3 shortlist drain can be exercised end-to-end without an authenticated
-// session. Mirrors the scraper's content_script `matches` in manifest.json.
-const SHORTLIST_TAB_URLS = [
-  "https://waterlooworks.uwaterloo.ca/*",
-  "file:///Users/ryanli/Code/WatSwipe/extension/fixtures/*",
-];
-
 async function findWaterlooWorksTab() {
-  const tabs = await chrome.tabs.query({ url: SHORTLIST_TAB_URLS });
+  const tabs = await chrome.tabs.query({
+    url: "https://waterlooworks.uwaterloo.ca/*",
+  });
   return tabs[0] || null;
 }
 

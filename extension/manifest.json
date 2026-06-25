@@ -13,8 +13,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://waterlooworks.uwaterloo.ca/*", 
-    "file:///Users/ryanli/Code/WatSwipe/extension/fixtures/*"],
+      "matches": ["https://waterlooworks.uwaterloo.ca/*"],
       "js": [
         "src/lib/messages.js",
         "src/lib/schema.js",
