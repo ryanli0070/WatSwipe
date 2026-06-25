@@ -36,6 +36,7 @@
 
     const { type, payload } = event.data;
     if (type === MSG.SHORTLIST_BATCH && Array.isArray(payload)) {
+      console.info("[WatSwipe/bridge] relaying SHORTLIST_BATCH to worker:", payload);
       chrome.runtime.sendMessage({ type: MSG.SHORTLIST_BATCH, ids: payload });
     } else if (type === MSG.JOBS_SYNC) {
       pushJobs(); // app requested a fresh push

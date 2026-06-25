@@ -36,6 +36,12 @@ const SHORTLIST_TAB_URLS = [
 
 async function findWaterlooWorksTab() {
   const tabs = await chrome.tabs.query({ url: SHORTLIST_TAB_URLS });
+  console.info(
+    "[WatSwipe/worker] tab query matched",
+    tabs.length,
+    "tab(s):",
+    tabs.map((t) => t.url)
+  );
   return tabs[0] || null;
 }
 
@@ -95,6 +101,7 @@ function scheduleWake() {
 // --- wiring --------------------------------------------------------------
 chrome.runtime.onMessage.addListener((message) => {
   if (message && message.type === MSG.SHORTLIST_BATCH && Array.isArray(message.ids)) {
+    console.info("[WatSwipe/worker] received SHORTLIST_BATCH:", message.ids);
     storage.enqueue(message.ids).then(() => drainQueue());
   }
 });
