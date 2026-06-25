@@ -51,9 +51,7 @@
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message && message.type === MSG.CLICK_SHORTLIST) {
-      const result = clickShortlist(message.id);
-      console.info("[WatSwipe/scraper] CLICK_SHORTLIST", message.id, "->", result);
-      sendResponse(result);
+      sendResponse(clickShortlist(message.id));
     }
     return true; // keep the channel open for the async-style response
   });
