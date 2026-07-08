@@ -1,7 +1,7 @@
 /**
- * worker.js — background service worker (Phase 3: throttled shortlist sync).
+ * worker.js — background service worker (Phase 3: throttled apply sync).
  *
- * Receives SHORTLIST_BATCH from bridge.js, persists ids to a queue that survives
+ * Receives APPLY_BATCH from bridge.js, persists ids to a queue that survives
  * worker termination, and drains them ONE AT A TIME against the WaterlooWorks tab
  * with a random 1.5–3.0s gap between clicks.
  *
@@ -38,7 +38,7 @@ function reportProgress(payload) {
   chrome.runtime.sendMessage({ type: MSG.SYNC_PROGRESS, payload }).catch(() => {});
 }
 
-/** Drain the queue, clicking one shortlist per random interval. */
+/** Drain the queue, applying to one posting per random interval. */
 async function drainQueue() {
   if (draining) return;
   draining = true;
@@ -57,7 +57,7 @@ async function drainQueue() {
       let result = { id, ok: false, reason: "no-response" };
       try {
         result = await chrome.tabs.sendMessage(tab.id, {
-          type: MSG.CLICK_SHORTLIST,
+          type: MSG.CLICK_APPLY,
           id,
         });
       } catch (err) {
@@ -88,7 +88,7 @@ function scheduleWake() {
 
 // --- wiring --------------------------------------------------------------
 chrome.runtime.onMessage.addListener((message) => {
-  if (message && message.type === MSG.SHORTLIST_BATCH && Array.isArray(message.ids)) {
+  if (message && message.type === MSG.APPLY_BATCH && Array.isArray(message.ids)) {
     storage.enqueue(message.ids).then(() => drainQueue());
   }
 });

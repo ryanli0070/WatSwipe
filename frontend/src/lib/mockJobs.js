@@ -28,7 +28,7 @@ export const mockJobs = Array.from({ length: 24 }, (_, i) => {
     description,
     tags,
     deadline: "2026-07-15",
-    shortlisted: false,
+    applied: false,
     scrapedAt: new Date().toISOString(),
   };
 });

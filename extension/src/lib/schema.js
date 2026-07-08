@@ -7,7 +7,7 @@
  *
  * JobPosting = {
  *   id, title, company, location, term, status,
- *   description, tags[], deadline, shortlisted, scrapedAt,
+ *   description, tags[], deadline, applied, scrapedAt,
  *   // extras present in the WaterlooWorks list view:
  *   division, level, openings, applications
  * }
@@ -184,7 +184,7 @@
       description: "", // detail-page only (follow-up)
       tags: [], // detail-page only (follow-up)
       deadline: fields.deadline || "",
-      shortlisted: row.dataset.shortlisted === "true",
+      applied: !!row.querySelector(SELECTORS.appliedButton),
       scrapedAt: new Date().toISOString(),
       // extras available in the list view (harmless to consumers that ignore them):
       division: fields.division || "",

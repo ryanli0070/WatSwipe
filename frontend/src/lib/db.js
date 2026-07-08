@@ -24,7 +24,7 @@ export async function getAllJobs() {
   return db.jobs.toArray();
 }
 
-/** Record a swipe; "right" = shortlist intent, "left" = pass. */
+/** Record a swipe; "right" = apply intent, "left" = pass. */
 export async function recordDecision(id, decision) {
   await db.decisions.put({ id, decision, decidedAt: new Date().toISOString() });
 }

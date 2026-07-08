@@ -1,7 +1,7 @@
 # WatSwipe
 
-A gesture-driven, **Tinder-style card UI for browsing and curating WaterlooWorks
-co-op postings**. Swipe right to shortlist, left to pass.
+A gesture-driven, **Tinder-style card UI for browsing and applying to WaterlooWorks
+co-op postings**. Swipe right to **apply**, left to pass.
 
 WaterlooWorks has no public API and sits behind closed CAS authentication, so
 WatSwipe is deliberately a **decentralized presentation + curation layer**: your
@@ -12,14 +12,14 @@ personal data ever leaves your device.
  waterlooworks.uwaterloo.ca            localhost:5173 (React app)
  ┌──────────────────────────┐         ┌──────────────────────────┐
  │ scraper.js               │         │ bridge.js                │
- │  • scrape job table      │         │  • read chrome.storage   │
+ │  • scrape job data-grid  │         │  • read chrome.storage   │
  │  • -> chrome.storage     │         │  • window.postMessage →  │
- │  • click shortlist (P3)  │         │    React app (origin-chk)│
+ │  • auto-Apply (Phase 3)  │         │    React app (origin-chk)│
  └────────────┬─────────────┘         └────────────┬─────────────┘
               │ chrome.runtime                      │ postMessage
               ▼                                     ▼
    background/worker.js  ───────────────►  React SwipeDeck + IndexedDB
-   (throttled shortlist queue,                       │
+   (throttled apply queue,                           │
     random 1.5–3.0s between clicks)                  ▼ stateless
                                           FastAPI :8000  POST /rank
                                           (TF-IDF; no DB, no storage)
@@ -39,12 +39,32 @@ These are enforced by the **structure** of the system, not just by policy text:
   authenticated, and `host_permissions` is limited to the WaterlooWorks origin
   plus the local app.
 
-### A note on the auto-shortlist sync (Phase 3)
+### The auto-Apply sync (Phase 3) — read this
 
-The throttled sync clicks shortlist buttons **in your own authenticated session,
-on postings you can already see**. The 1.5–3.0s random delay exists to be a polite
-client of a shared university system — not to evade detection. Treat this feature
-as opt-in and use it responsibly within WaterlooWorks' terms of use.
+A right-swipe is not just a bookmark: it **submits a real co-op application** in
+your own authenticated WaterlooWorks session. Applications are hard to reverse, so
+the sync is deliberately conservative and **opt-in**:
+
+- **It only auto-submits postings that need nothing beyond your standard package**
+  — Résumé, Grade Report, and University of Waterloo Co-op Work History (the
+  documents that come from your default application package).
+- **It skips (and leaves for you to apply manually) any posting that needs
+  posting-specific input** — pre-screening questions, a required cover letter, an
+  "Other - Per Job Posting" document, or any non-standard document. On these it
+  opens the Apply wizard, detects the requirement, and **cancels** without
+  submitting.
+- **Two layered guards** protect every submit: (1) the wizard must pass the
+  document/pre-screening check, **and** (2) the wizard's advance button must read
+  exactly `Submit` (only present on a single-input step). Any deviation cancels
+  instead of guessing.
+- **Throttling.** The queue drains one posting at a time with a random 1.5–3.0s
+  gap — to be a polite client of a shared university system, not to evade
+  detection.
+
+Because most postings ask for *something* posting-specific, expect auto-Apply to
+fire on relatively few of them; the rest are queued for you to finish by hand.
+**Use this feature responsibly within WaterlooWorks' terms of use, and watch the
+first live run** — clicking `Submit` sends a real application.
 
 ## Repository layout
 
@@ -81,35 +101,46 @@ immediately. The relevance search box calls the backend if it's running.
 
 1. Open `chrome://extensions`, enable **Developer mode**, **Load unpacked** →
    select the `extension/` folder.
-2. Open `extension/fixtures/mock-waterlooworks.html` to develop against a mock
-   job table (for the live site, the scraper auto-runs on
-   `waterlooworks.uwaterloo.ca`). To scrape the local fixture during dev, add its
-   `file://` (or a served) URL to the scraper's `matches` in `manifest.json`.
+2. Log into **WaterlooWorks** and open the co-op **Job Postings** table. The
+   scraper auto-runs on `waterlooworks.uwaterloo.ca`, waits for the Vue data-grid
+   to render, and scrapes it into `chrome.storage.local`.
 3. With the app open at `localhost:5173`, scraped postings flow to the deck via
-   the `window.postMessage` bridge.
+   the `window.postMessage` bridge. Right-swipes are queued to the throttled
+   auto-Apply sync (see Phase 3 above).
+
+> **MV3 reload gotcha:** reloading the extension from `chrome://extensions`
+> disconnects content scripts in already-open tabs. After a reload, reload the
+> WaterlooWorks tab **and** the `localhost:5173` tab, or `tabs.sendMessage` will
+> report "receiving end does not exist."
 
 ## How the 3-card virtualization works
 
-`useSwipeQueue` keeps the full ordered list plus a moving `cursor`, but only ever
-exposes `jobs.slice(cursor, cursor + 3)` → `[current, next, preload]`. `SwipeDeck`
-renders just those, so the DOM holds **at most 3 cards** no matter how many hundreds
-of postings exist. You can confirm this in DevTools: only ≤3 `.job-card` nodes are
-mounted while swiping through the whole deck.
+`useSwipeQueue` holds the full ordered list of postings and **derives the deck as
+the ones you haven't decided on yet** (`jobs.filter(j => !decided.has(j.id))`),
+then exposes a window of at most 3 → `[current, next, preload]`. `SwipeDeck`
+renders just those, so the DOM holds **at most 3 `.job-card` nodes** no matter how
+many hundreds of postings exist. Deriving (rather than tracking a moving cursor)
+means a live re-scrape — e.g. the `JOBS_SYNC` that fires after an Apply click
+mutates the source table — can re-push the whole list **without** resurfacing a
+card you already swiped or resetting your position.
 
 ## Verification checklist
 
 - **Backend:** `pytest` (5 tests) green; `curl localhost:8000/health` → `{"status":"ok"}`.
 - **Frontend standalone:** `npm run dev`, swipe with mouse-drag and ←/→ keys; only
-  ≤3 `.job-card` nodes in the DOM at any time.
-- **Extension bridge:** load unpacked, open the mock fixture → `chrome.storage.local`
-  populates; open the app → `JOBS_SYNC` arrives (origin-checked) and the deck fills.
-- **Throttled sync:** right-swipe several cards → `worker.js` drains the queue with
-  logged 1.5–3.0s gaps; the queue survives terminating the service worker from
+  ≤3 `.job-card` nodes in the DOM at any time; `npm run build` passes.
+- **Extension bridge:** load unpacked, open the live postings table →
+  `chrome.storage.local` populates; open the app → `JOBS_SYNC` arrives
+  (origin-checked) and the deck fills.
+- **Auto-Apply sync:** right-swipe several cards → `worker.js` drains the queue
+  with 1.5–3.0s gaps; safe postings submit, posting-specific ones report a skip
+  reason; the queue survives terminating the service worker from
   `chrome://extensions`.
 
 ## Out of scope (this iteration)
 
-- Real WaterlooWorks DOM selectors (built against the mock fixture; swap them into
-  `extension/src/lib/schema.js`).
+- **Description & tags** are scraped as empty: WaterlooWorks shows them only on the
+  posting detail page, not the list row (a detail-page-scraping follow-up).
 - Chrome Web Store packaging and production app hosting.
 - Embedding-based semantic ranking (TF-IDF for now, behind the same `/rank` shape).
+```

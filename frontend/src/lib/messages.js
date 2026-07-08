@@ -10,9 +10,9 @@ export const SOURCE = {
 
 export const MSG = {
   JOBS_SYNC: "JOBS_SYNC",
-  SHORTLIST_BATCH: "SHORTLIST_BATCH",
+  APPLY_BATCH: "APPLY_BATCH",
   SYNC_PROGRESS: "SYNC_PROGRESS",
-  CLICK_SHORTLIST: "CLICK_SHORTLIST",
+  CLICK_APPLY: "CLICK_APPLY",
 };
 
 /** Send a message to the extension bridge content script. */

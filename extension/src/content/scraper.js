@@ -4,12 +4,11 @@
  * Responsibilities:
  *   1. Scrape the visible job data-grid into JobPostings and persist to
  *      chrome.storage.local (the ingestion node).
- *   2. Handle CLICK_SHORTLIST messages from the background worker to act on one
- *      posting (Phase 3 throttled sync). Per the current design a "shortlist" =
- *      Apply, and we ONLY auto-submit when the posting needs no posting-specific
- *      input (cover letter / additional documents / extra questions); otherwise
- *      we skip it for manual application. That gating needs the Apply-dialog DOM,
- *      which is not captured yet, so the click is currently a safe no-op (below).
+ *   2. Handle CLICK_APPLY messages from the background worker to apply to one
+ *      posting (Phase 3 throttled sync). A right-swipe = Apply, and we ONLY
+ *      auto-submit when the posting needs no posting-specific input (cover
+ *      letter / additional documents / pre-screening questions); otherwise we
+ *      cancel the wizard and skip it for manual application (see applyToPosting).
  *
  * WaterlooWorks is a Vue SPA: the grid renders asynchronously after the content
  * script is injected (run_at: document_idle), so we wait for the table before the
@@ -181,7 +180,7 @@
   }
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message && message.type === MSG.CLICK_SHORTLIST) {
+    if (message && message.type === MSG.CLICK_APPLY) {
       applyToPosting(message.id).then(sendResponse);
       return true; // keep the channel open for the async response
     }

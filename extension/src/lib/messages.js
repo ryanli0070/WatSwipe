@@ -20,9 +20,9 @@
   // Message types carried in postMessage / chrome.runtime payloads.
   WatSwipe.MSG = {
     JOBS_SYNC: "JOBS_SYNC", // EXT -> APP: here are the scraped postings
-    SHORTLIST_BATCH: "SHORTLIST_BATCH", // APP -> EXT: queue these ids for shortlisting
-    SYNC_PROGRESS: "SYNC_PROGRESS", // EXT -> APP: shortlist progress/result
-    CLICK_SHORTLIST: "CLICK_SHORTLIST", // worker -> scraper: click one row's button
+    APPLY_BATCH: "APPLY_BATCH", // APP -> EXT: queue these ids for auto-apply
+    SYNC_PROGRESS: "SYNC_PROGRESS", // EXT -> APP: apply progress/result
+    CLICK_APPLY: "CLICK_APPLY", // worker -> scraper: click one row's button
   };
 
   /**

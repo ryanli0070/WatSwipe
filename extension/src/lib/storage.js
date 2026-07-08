@@ -4,7 +4,7 @@
  *
  * Keys:
  *   watswipe:jobs       -> { [id]: JobPosting }
- *   watswipe:syncQueue  -> string[] of posting ids awaiting shortlist clicks
+ *   watswipe:syncQueue  -> string[] of posting ids awaiting apply clicks
  */
 (function (root) {
   const WatSwipe = (root.WatSwipe = root.WatSwipe || {});
@@ -36,7 +36,7 @@
       return queue || [];
     },
 
-    /** Append ids to the persistent shortlist queue, ignoring duplicates. */
+    /** Append ids to the persistent apply queue, ignoring duplicates. */
     async enqueue(ids) {
       const queue = await this.getQueue();
       const seen = new Set(queue);

@@ -30,7 +30,7 @@ export default function SwipeControls({ onSwipe, disabled }) {
         className="control control-like"
         onClick={() => onSwipe("right")}
         disabled={disabled}
-        aria-label="Shortlist (right arrow)"
+        aria-label="Apply (right arrow)"
       >
         ★
       </button>

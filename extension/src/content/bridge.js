@@ -3,7 +3,7 @@
  *
  * The secure window.postMessage channel between the extension and the local app:
  *   - EXT -> APP : pushes scraped postings (JOBS_SYNC), initial + on change.
- *   - APP -> EXT : relays SHORTLIST_BATCH requests to the background worker.
+ *   - APP -> EXT : relays APPLY_BATCH requests to the background worker.
  *
  * Every inbound message is origin-checked (event.origin === location.origin) and
  * source-stamped, so a malicious script on the page can't impersonate the app.
@@ -30,13 +30,13 @@
   });
 
   // Re-push on demand (the app asks after it mounts its listener).
-  // --- APP -> EXT: relay shortlist batches & resync requests ---------------
+  // --- APP -> EXT: relay apply batches & resync requests ---------------
   window.addEventListener("message", (event) => {
     if (!isTrustedMessage(event, SOURCE.APP)) return;
 
     const { type, payload } = event.data;
-    if (type === MSG.SHORTLIST_BATCH && Array.isArray(payload)) {
-      chrome.runtime.sendMessage({ type: MSG.SHORTLIST_BATCH, ids: payload });
+    if (type === MSG.APPLY_BATCH && Array.isArray(payload)) {
+      chrome.runtime.sendMessage({ type: MSG.APPLY_BATCH, ids: payload });
     } else if (type === MSG.JOBS_SYNC) {
       pushJobs(); // app requested a fresh push
     }

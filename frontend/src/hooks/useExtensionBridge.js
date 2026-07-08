@@ -59,9 +59,9 @@ export function useExtensionBridge() {
   return { jobs, source, syncProgress };
 }
 
-/** Send a batch of shortlist ids to the extension's throttled sync queue. */
-export function sendShortlistBatch(ids) {
-  if (ids.length) postToExtension(MSG.SHORTLIST_BATCH, ids);
+/** Send a batch of apply ids to the extension's throttled sync queue. */
+export function sendApplyBatch(ids) {
+  if (ids.length) postToExtension(MSG.APPLY_BATCH, ids);
 }
 
 export { SOURCE };
