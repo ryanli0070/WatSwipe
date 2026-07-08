@@ -127,8 +127,12 @@
    * step with no further pages). Any deviation cancels instead of guessing.
    */
   async function applyToPosting(id) {
+    console.info("[WatSwipe] scraper applyToPosting", id);
     const row = findRow(id);
-    if (!row) return { id, ok: false, reason: "row-not-found" };
+    if (!row) {
+      console.warn("[WatSwipe] scraper: row not found for", id);
+      return { id, ok: false, reason: "row-not-found" };
+    }
 
     // States where Apply is unavailable — skip cleanly, never wedge the queue.
     if (row.querySelector(SELECTORS.appliedButton)) {
@@ -141,12 +145,17 @@
     if (!applyBtn) return { id, ok: false, reason: "apply-button-not-found" };
 
     // Open the wizard.
+    console.info("[WatSwipe] scraper: clicking Apply for", id);
     applyBtn.click();
     const wiz = await waitFor(() => findWizard(id), WIZARD_OPEN_MS);
-    if (!wiz) return { id, ok: false, reason: "wizard-did-not-open" };
+    if (!wiz) {
+      console.warn("[WatSwipe] scraper: wizard did not open for", id);
+      return { id, ok: false, reason: "wizard-did-not-open" };
+    }
 
     // Gate 1: is this posting safe to auto-submit with the standard package?
     const verdict = evaluateApplyDialog(wiz);
+    console.info("[WatSwipe] scraper verdict for", id, verdict);
     if (!verdict.safe) {
       cancelWizard(wiz);
       return { id, ok: false, reason: verdict.reason };
@@ -156,12 +165,14 @@
     // with no further pages). If it says "Next" or anything else, bail.
     const nextBtn = wiz.querySelector(SELECTORS.wizardNextBtn);
     const label = nextBtn ? nextBtn.textContent.trim() : "";
+    console.info("[WatSwipe] scraper next-btn label:", JSON.stringify(label));
     if (label !== "Submit" || !isShown(nextBtn)) {
       cancelWizard(wiz);
       return { id, ok: false, reason: `unexpected-step:${label || "no-button"}` };
     }
 
     // Submit the real application.
+    console.info("[WatSwipe] scraper: clicking Submit for", id);
     nextBtn.click();
 
     // Wait for the confirmation step (the "Done" finish button becomes available).

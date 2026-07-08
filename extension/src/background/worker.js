@@ -44,23 +44,28 @@ async function drainQueue() {
   draining = true;
   try {
     let queue = await storage.getQueue();
+    console.info("[WatSwipe] worker drainQueue start, queue:", queue.length);
     while (queue.length) {
       const tab = await findWaterlooWorksTab();
       if (!tab) {
         // No authenticated WW tab open — back off and retry via alarm later.
+        console.warn("[WatSwipe] worker: no WaterlooWorks tab found");
         reportProgress({ state: "waiting-for-tab", remaining: queue.length });
         scheduleWake();
         return;
       }
 
       const id = queue[0];
+      console.info("[WatSwipe] worker -> scraper CLICK_APPLY", id, "tab", tab.id);
       let result = { id, ok: false, reason: "no-response" };
       try {
         result = await chrome.tabs.sendMessage(tab.id, {
           type: MSG.CLICK_APPLY,
           id,
         });
+        console.info("[WatSwipe] worker got result for", id, result);
       } catch (err) {
+        console.error("[WatSwipe] worker sendMessage failed for", id, String(err));
         result = { id, ok: false, reason: String(err) };
       }
 
@@ -89,6 +94,7 @@ function scheduleWake() {
 // --- wiring --------------------------------------------------------------
 chrome.runtime.onMessage.addListener((message) => {
   if (message && message.type === MSG.APPLY_BATCH && Array.isArray(message.ids)) {
+    console.info("[WatSwipe] worker received APPLY_BATCH", message.ids);
     storage.enqueue(message.ids).then(() => drainQueue());
   }
 });
