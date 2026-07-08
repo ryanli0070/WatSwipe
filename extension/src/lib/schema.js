@@ -46,7 +46,74 @@
     // States where Apply is unavailable (skip, don't attempt):
     appliedButton: "button[aria-label='Cancel Application']", // already applied
     ineligibleButton: "button[aria-label*='do not qualify']", // not eligible
+
+    // --- Apply wizard (opens after clicking Apply) -------------------------
+    // A jQuery-style multi-step wizard rendered as a full view (#applyWizard),
+    // NOT a modal overlay. The primary advance button's LABEL is the submit
+    // guard: "Submit" only appears on the final input step.
+    applyWizard: "#applyWizard",
+    wizardStepContainer: ".js--ui-wizard-step-container",
+    wizardCurrentStep: ".js--ui-wizard-step.current-step",
+    wizardStepTitle: ".wizard-form__section-fieldset__title",
+    wizardTitle: ".wizard__title",
+    wizardNextBtn: ".js--ui-wizard-next-btn", // labeled "Next" or "Submit" per step
+    wizardFinishBtn: ".js--ui-wizard-finish-btn", // "Done" (closes after submit)
+    wizardCancelBtn: ".js--ui-wizard-cancel-btn",
+    prescreenQuestion: "[name^='question_']",
+    packageDocItem: "ul.comma-list li", // documents in the selected package
   });
+
+  // Documents that come from the student's standard/default package and are safe
+  // to auto-submit. Anything else in the package doc-list (cover letter, "Other -
+  // Per Job Posting", etc.) is treated as posting-specific -> skip for manual.
+  const SAFE_DOCS = (WatSwipe.SAFE_DOCS = [
+    /r[eé]sum[eé]/i,
+    /grade report/i,
+    /work history/i,
+  ]);
+
+  const isVisible = (el) => {
+    for (let p = el; p; p = p.parentElement) {
+      const c = typeof p.className === "string" ? p.className : "";
+      if (/\bhide\b/.test(c) || /display--none/.test(c)) return false;
+    }
+    return true;
+  };
+
+  /**
+   * Decide whether an open Apply wizard can be auto-submitted with the standard
+   * package, per the rule: skip anything that needs posting-specific input.
+   * `root` is the wizard container element. Returns { safe, reason }.
+   */
+  WatSwipe.evaluateApplyDialog = function (root) {
+    if (!root) return { safe: false, reason: "wizard-not-found" };
+
+    // (1) Pre-screening questions -> posting-specific -> skip.
+    const stepTitles = Array.from(
+      root.querySelectorAll(SELECTORS.wizardStepTitle),
+      (el) => text(el)
+    );
+    if (stepTitles.some((t) => /pre-?screening/i.test(t))) {
+      return { safe: false, reason: "pre-screening-questions" };
+    }
+    if (root.querySelector(SELECTORS.prescreenQuestion)) {
+      return { safe: false, reason: "pre-screening-questions" };
+    }
+
+    // (2) Any non-standard document in the selected package -> skip.
+    const docs = Array.from(root.querySelectorAll(SELECTORS.packageDocItem))
+      .filter(isVisible)
+      .map((el) => text(el))
+      .filter(Boolean);
+    const nonStandard = docs.filter(
+      (name) => !SAFE_DOCS.some((re) => re.test(name))
+    );
+    if (nonStandard.length) {
+      return { safe: false, reason: "requires-document:" + nonStandard.join(",") };
+    }
+
+    return { safe: true, reason: "standard-package" };
+  };
 
   /**
    * Map a WaterlooWorks column header label -> canonical JobPosting field.
