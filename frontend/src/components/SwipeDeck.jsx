@@ -9,8 +9,10 @@ import { useSwipeQueue } from "../hooks/useSwipeQueue.js";
 import JobCard from "./JobCard.jsx";
 import SwipeControls from "./SwipeControls.jsx";
 
-export default function SwipeDeck({ jobs }) {
-  const { window: cards, swipe, remaining, total, isDone } = useSwipeQueue(jobs);
+export default function SwipeDeck({ jobs, onShortlist }) {
+  const { window: cards, swipe, remaining, total, isDone } = useSwipeQueue(jobs, {
+    onShortlist,
+  });
 
   if (!jobs.length) {
     return <div className="deck-empty">No postings yet. Scrape WaterlooWorks to begin.</div>;

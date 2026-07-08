@@ -58,7 +58,7 @@ export default function JobCard({ job, isTop, stackIndex, onSwipe }) {
       {isTop && (
         <>
           <motion.div className="badge badge-like" style={{ opacity: likeOpacity }}>
-            APPLY
+            SHORTLIST
           </motion.div>
           <motion.div className="badge badge-nope" style={{ opacity: nopeOpacity }}>
             PASS

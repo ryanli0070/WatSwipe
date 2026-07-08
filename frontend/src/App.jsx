@@ -1,17 +1,32 @@
 /**
- * App — wires the extension bridge to the swipe deck, with an optional relevance
- * search powered by the stateless backend.
+ * App — two views over the same postings:
+ *   • Deck: swipe right to SHORTLIST (local curation), left to pass.
+ *   • Shortlist: multi-select curated postings and auto-apply to the chosen ones.
+ * Plus an optional relevance search powered by the stateless backend.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useExtensionBridge } from "./hooks/useExtensionBridge.js";
 import { rankJobs } from "./lib/api.js";
+import { countShortlist } from "./lib/db.js";
 import SwipeDeck from "./components/SwipeDeck.jsx";
+import ShortlistView from "./components/ShortlistView.jsx";
 import "./styles/app.css";
 
 export default function App() {
-  const { jobs, source, syncProgress } = useExtensionBridge();
+  const { jobs, source, syncProgress, applyResults } = useExtensionBridge();
   const [query, setQuery] = useState("");
   const [rankedOrder, setRankedOrder] = useState(null);
+  const [view, setView] = useState("deck"); // "deck" | "shortlist"
+  const [shortlistCount, setShortlistCount] = useState(0);
+
+  // Keep the tab badge in sync with the shortlist. `refreshCount` is called after
+  // a right-swipe (from the deck) and after a remove (from the shortlist view).
+  const refreshCount = useCallback(() => {
+    countShortlist().then(setShortlistCount);
+  }, []);
+  useEffect(() => {
+    refreshCount();
+  }, [refreshCount, jobs]);
 
   // Apply relevance ordering when a ranking is available; otherwise original order.
   const orderedJobs = useMemo(() => {
@@ -39,17 +54,42 @@ export default function App() {
         </span>
       </header>
 
-      <form className="rank-bar" onSubmit={handleRank}>
-        <input
-          type="text"
-          placeholder="Rank by relevance (e.g. python machine learning)…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button type="submit">Rank</button>
-      </form>
+      <nav className="tabs">
+        <button
+          className={`tab ${view === "deck" ? "tab-active" : ""}`}
+          onClick={() => setView("deck")}
+        >
+          Deck
+        </button>
+        <button
+          className={`tab ${view === "shortlist" ? "tab-active" : ""}`}
+          onClick={() => setView("shortlist")}
+        >
+          Shortlist{shortlistCount ? ` (${shortlistCount})` : ""}
+        </button>
+      </nav>
 
-      <SwipeDeck jobs={orderedJobs} />
+      {view === "deck" ? (
+        <>
+          <form className="rank-bar" onSubmit={handleRank}>
+            <input
+              type="text"
+              placeholder="Rank by relevance (e.g. python machine learning)…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <button type="submit">Rank</button>
+          </form>
+
+          <SwipeDeck jobs={orderedJobs} onShortlist={refreshCount} />
+        </>
+      ) : (
+        <ShortlistView
+          applyResults={applyResults}
+          source={source}
+          onChange={refreshCount}
+        />
+      )}
 
       {syncProgress && (
         <footer className="sync-status">

@@ -9,6 +9,9 @@ frontend/node_modules/
 frontend/dist/
 extension/dist/
 
+# Test / tooling artifacts
+.playwright-mcp/
+
 # Editor / OS
 .DS_Store
 .vscode/

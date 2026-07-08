@@ -18,6 +18,9 @@ export function useExtensionBridge() {
   const [jobs, setJobs] = useState([]);
   const [source, setSource] = useState("loading");
   const [syncProgress, setSyncProgress] = useState(null);
+  // Per-posting apply outcomes, keyed by id: { ok, reason }. Fed by SYNC_PROGRESS
+  // so the Shortlist view can show "submitted" / "skipped: <reason>" per item.
+  const [applyResults, setApplyResults] = useState({});
 
   useEffect(() => {
     let gotExtensionData = false;
@@ -33,6 +36,10 @@ export function useExtensionBridge() {
         setJobs(await getAllJobs());
       } else if (type === MSG.SYNC_PROGRESS) {
         setSyncProgress(payload);
+        if (payload?.result?.id) {
+          const { id, ok, reason } = payload.result;
+          setApplyResults((prev) => ({ ...prev, [id]: { ok, reason } }));
+        }
       }
     }
 
@@ -56,7 +63,7 @@ export function useExtensionBridge() {
     };
   }, []);
 
-  return { jobs, source, syncProgress };
+  return { jobs, source, syncProgress, applyResults };
 }
 
 /** Send a batch of apply ids to the extension's throttled sync queue. */
