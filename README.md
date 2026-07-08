@@ -1,7 +1,8 @@
 # WatSwipe
 
 A gesture-driven, **Tinder-style card UI for browsing and applying to WaterlooWorks
-co-op postings**. Swipe right to **apply**, left to pass.
+co-op postings**. Swipe right to **shortlist**, left to pass — then, from your
+shortlist, select the postings you want and **auto-apply** to just those.
 
 WaterlooWorks has no public API and sits behind closed CAS authentication, so
 WatSwipe is deliberately a **decentralized presentation + curation layer**: your
@@ -41,9 +42,12 @@ These are enforced by the **structure** of the system, not just by policy text:
 
 ### The auto-Apply sync (Phase 3) — read this
 
-A right-swipe is not just a bookmark: it **submits a real co-op application** in
-your own authenticated WaterlooWorks session. Applications are hard to reverse, so
-the sync is deliberately conservative and **opt-in**:
+Swiping right only **shortlists** a posting locally — it submits nothing. Applying
+is a separate, deliberate step: open the **Shortlist** tab, multi-select the
+postings you want (like selecting files in a folder), and click **Auto-apply to
+selected**. Only then does WatSwipe act on WaterlooWorks — **submitting real co-op
+applications** in your own authenticated session. Applications are hard to reverse,
+so the sync is deliberately conservative and **opt-in**:
 
 - **It only auto-submits postings that need nothing beyond your standard package**
   — Résumé, Grade Report, and University of Waterloo Co-op Work History (the
@@ -105,8 +109,9 @@ immediately. The relevance search box calls the backend if it's running.
    scraper auto-runs on `waterlooworks.uwaterloo.ca`, waits for the Vue data-grid
    to render, and scrapes it into `chrome.storage.local`.
 3. With the app open at `localhost:5173`, scraped postings flow to the deck via
-   the `window.postMessage` bridge. Right-swipes are queued to the throttled
-   auto-Apply sync (see Phase 3 above).
+   the `window.postMessage` bridge. Right-swipes add postings to your **Shortlist**
+   tab; from there you select some and trigger the throttled auto-Apply sync (see
+   Phase 3 above).
 
 > **MV3 reload gotcha:** reloading the extension from `chrome://extensions`
 > disconnects content scripts in already-open tabs. After a reload, reload the
@@ -132,10 +137,11 @@ card you already swiped or resetting your position.
 - **Extension bridge:** load unpacked, open the live postings table →
   `chrome.storage.local` populates; open the app → `JOBS_SYNC` arrives
   (origin-checked) and the deck fills.
-- **Auto-Apply sync:** right-swipe several cards → `worker.js` drains the queue
-  with 1.5–3.0s gaps; safe postings submit, posting-specific ones report a skip
-  reason; the queue survives terminating the service worker from
-  `chrome://extensions`.
+- **Shortlist → auto-Apply:** right-swipe several cards → they appear in the
+  **Shortlist** tab with a count badge; select some and click **Auto-apply to
+  selected** → `worker.js` drains the queue with 1.5–3.0s gaps; safe postings
+  submit, posting-specific ones report a skip reason; the queue survives
+  terminating the service worker from `chrome://extensions`.
 
 ## Out of scope (this iteration)
 
