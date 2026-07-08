@@ -100,11 +100,21 @@
       return { safe: false, reason: "pre-screening-questions" };
     }
 
-    // (2) Any non-standard document in the selected package -> skip.
+    // (2) Inspect the currently-selected application package's document list.
     const docs = Array.from(root.querySelectorAll(SELECTORS.packageDocItem))
       .filter(isVisible)
       .map((el) => text(el))
       .filter(Boolean);
+
+    // We never pick a package/résumé ourselves — we submit whatever WaterlooWorks
+    // has pre-selected. So only proceed if a résumé is actually attached; a
+    // missing/empty default package must NOT be blind-submitted.
+    const hasResume = docs.some((name) => /r[eé]sum[eé]/i.test(name));
+    if (!hasResume) {
+      return { safe: false, reason: "no-resume-selected" };
+    }
+
+    // Any non-standard document in that package -> posting-specific -> skip.
     const nonStandard = docs.filter(
       (name) => !SAFE_DOCS.some((re) => re.test(name))
     );
